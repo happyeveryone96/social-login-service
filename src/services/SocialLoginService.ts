@@ -1,3 +1,6 @@
+import KakaoLogin from './KakaoLogin';
+import NaverLogin from './NaverLogin';
+
 export type SocialLoginProviders = 'kakao' | 'naver';
 
 interface User {
@@ -25,6 +28,23 @@ class SocialLoginService {
   }
 
   async login(): Promise<LoginErrors | SocialLoginResponse> {
+    const kakaoLogin = new KakaoLogin();
+    const naverLogin = new NaverLogin();
+
+    if (this.provider === 'kakao') {
+      const res = await kakaoLogin.login();
+      const providerId = res.provider_id;
+      const provider = this.provider;
+      const { user, scopes } = res.profile;
+      const { id, email } = user;
+      return { providerId, provider, user: { id }, scopes, email };
+    } else if (this.provider === 'naver') {
+      const res = await naverLogin.login();
+      const providerId = res.provider.id;
+      const provider = this.provider;
+      const { scopes, email, user_name } = res.profile;
+      return { providerId, provider, user: { id: user_name }, scopes, email };
+    }
     return LoginErrors.LoginProviderError;
   }
 }
